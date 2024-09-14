@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Visualization Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f4f8;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+
+        h3 {
+            color: #34495e;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .chart-container {
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .chart-container:hover {
+            transform: scale(1.02);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        canvas {
+            width: 100% !important;
+            height: auto !important;
+        }
+
+        .charts-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .charts-row .chart-container {
+            flex: 1;
+        }
+
+        #polar-bar-chart,
+        #heatmap {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .button-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .button-container button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .button-container button:hover {
+            background-color: #2980b9;
+        }
+
+        .statistick-container {
+            max-width: 400px; /* Reduced size */
+            margin: auto; /* Centering the chart */
+        }
+
+        .month-filter {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .month-filter select {
+            padding: 10px;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Data Visualization Dashboard</h2>
+
+        <!-- Month Filter -->
+        <div class="month-filter">
+            <label for="monthSelect">Select Month:</label>
+            <select id="monthSelect">
+                <option value="all">All</option>
+                <option value="Jan">January</option>
+                <option value="Feb">February</option>
+                <option value="Mar">March</option>
+                <option value="Apr">April</option>
+                <option value="May">May</option>
+                <option value="Jun">June</option>
+                <option value="Jul">July</option>
+                <option value="Aug">August</option>
+                <option value="Sep">September</option>
+                <option value="Oct">October</option>
+                <option value="Nov">November</option>
+                <option value="Dec">December</option>
+            </select>
+        </div>
+
+        <div class="button-container">
+            <button onclick="showChart('cloudCoverage')">Show Cloud Coverage</button>
+            <button onclick="showChart('heatmap')">Show Heatmap</button>
+            <button onclick="showChart('polarBar')">Show Annual Wind Rose</button>
+            <button onclick="showChart('statistick')">Show Statistick</button>
+            <button onclick="showChart('heatingCooling')">Show Heating & Cooling</button>
+        </div>
+
+        <!-- Cloud Coverage Chart -->
+        <div class="chart-container" id="cloudCoverageContainer">
+            <h3>Cloud Coverage</h3>
+            <canvas id="cloudCoverageChart"></canvas>
+        </div>
+
+        <!-- Heatmap -->
+        <div class="chart-container" id="heatmapContainer">
+            <h3>Heatmap</h3>
+            <div class="heatmap" id="heatmap"></div>
+        </div>
+
+        <!-- Charts Row: Annual Wind Rose and Statistick -->
+        <div class="charts-row">
+            <!-- Annual Wind Rose -->
+            <div class="chart-container" id="polarBarContainer">
+                <h3>Annual Wind Rose</h3>
+                <div id="polar-bar-chart" style="width:100%; height:400px;"></div> <!-- Reduced height -->
+            </div>
+
+            <!-- Statistick Chart -->
+            <div class="chart-container statistick-container" id="statistickContainer">
+                <h3>Statistick</h3>
+                <canvas id="browserChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Heating and Cooling Degree Days Chart -->
+        <div class="chart-container" id="heatingCoolingContainer">
+            <h3>Heating and Cooling Degree Days</h3>
+            <canvas id="myChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // Cloud Coverage Chart
+        const ctxCloudCoverage = document.getElementById('cloudCoverageChart').getContext('2d');
+        new Chart(ctxCloudCoverage, {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [
+                    {
+                        label: 'ABOVE range',
+                        data: [20, 25, 15, 30, 20, 25, 20, 25, 30, 15, 20, 25],
+                        backgroundColor: 'lightblue',
+                        barThickness: 40
+                    },
+                    {
+                        label: 'IN range',
+                        data: [10, 15, 10, 15, 10, 15, 10, 15, 10, 15, 10, 15],
+                        backgroundColor: 'lightgray',
+                        barThickness: 40
+                    },
+                    {
+                        label: 'BELOW range',
+                        data: [70, 60, 75, 55, 70, 60, 70, 60, 60, 70, 70, 60],
+                        backgroundColor: 'gray',
+                        barThickness: 40
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        stacked: true,
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        max: 100
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += context.parsed.y;
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Heatmap
+        var hours = Array.from({ length: 24 }, (_, i) => `Hour ${i + 1}`);
+        var days = Array.from({ length: 365 }, (_, i) => {
+            const month = Math.floor(i / 30) + 1;
+            const day = (i % 30) + 1;
+            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            return `${months[month - 1]} ${day}`;
+        });
+
+        var heatmapValues = Array.from({ length: 24 }, () => Array.from({ length: 365 }, () => Math.floor(Math.random() * 100)));
+
+        var heatmapData = [{
+            z: heatmapValues,
+            x: days,
+            y: hours,
+            colorscale: 'YlOrRd',
+            type: 'heatmap'
+        }];
+
+        var layoutHeatmap = {
+            title: 'Sample Heatmap',
+            xaxis: {
+                title: 'Days',
+                tickvals: days.filter((_, index) => index % 30 === 0),
+                ticktext: days.filter((_, index) => index % 30 === 0)
+            },
+            yaxis: { title: 'Hours' }
+        };
+
+        Plotly.newPlot('heatmap', heatmapData, layoutHeatmap);
+
+        // Polar Bar Chart
+        var dataPolarBarChart = [
+            {
+                type: 'barpolar',
+                r: [2, 1.5, 3, 3.5, 1, 2.5, 4.5, 5, 6.5, 7.5, 8, 5.5, 6, 7, 4],
+                theta: ['0°', '22.5°', '45°', '67.5°', '90°', '112.5°', '135°', '157.5°', '180°', '202.5°', '225°', '247.5°', '270°', '292.5°', '315°'],
+                marker: {
+                    color: ['#FFD700', '#FF8C00', '#FF6347', '#FF4500', '#FF1493', '#FF69B4', '#CD5C5C', '#FF7F50', '#FFA07A', '#00BFFF', '#1E90FF', '#87CEEB', '#4682B4', '#4169E1', '#6A5ACD']
+                }
+            }
+        ];
+        var layoutPolarBarChart = {
+            font: { size: 16 }
+        };
+        Plotly.newPlot('polar-bar-chart', dataPolarBarChart, layoutPolarBarChart);
+
+        // Heating and Cooling Degree Days Chart
+        const ctxHeatingCooling = document.getElementById('myChart').getContext('2d');
+        new Chart(ctxHeatingCooling, {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [
+                    {
+                        label: 'Cooling Degree Days',
+                        data: [0, 0, 0, 0, 0, 200, 250, 250, 150, 50, 0, 0],
+                        backgroundColor: 'blue'
+                    },
+                    {
+                        label: 'Heating Degree Days',
+                        data: [-200, -150, -100, -50, -50, 0, 0, 0, 0, 0, -50, -200],
+                        backgroundColor: 'red'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        stacked: true,
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += context.parsed.y;
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Statistick Chart
+        const ctxBrowser = document.getElementById('browserChart').getContext('2d');
+        new Chart(ctxBrowser, {
+            type: 'pie',
+            data: {
+                labels: ['Chrome', 'Firefox', 'Safari', 'Edge', 'IE'],
+                datasets: [{
+                    label: 'Browser Usage',
+                    data: [65, 20, 10, 4, 1],
+                    backgroundColor: ['#4285F4', '#FF5722', '#FFEB3B', '#00A800', '#F44336']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.raw !== null) {
+                                    label += context.raw;
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Function to show/hide charts
+        function showChart(chartId) {
+            const chartContainers = ['cloudCoverageContainer', 'heatmapContainer', 'polarBarContainer', 'statistickContainer', 'heatingCoolingContainer'];
+            chartContainers.forEach(id => {
+                document.getElementById(id).style.display = 'none';
+            });
+            document.getElementById(chartId + 'Container').style.display = 'block';
+        }
+
+        // Function to filter charts by month
+        document.getElementById('monthSelect').addEventListener('change', function() {
+            const selectedMonth = this.value;
+            // Here you can add code to filter chart data based on the selected month
+            console.log('Selected Month:', selectedMonth);
+        });
+
+        // Initially show Cloud Coverage Chart
+        showChart('cloudCoverage');
+    </script>
+</body>
+</html>
