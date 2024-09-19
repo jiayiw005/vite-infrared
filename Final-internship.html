@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Visualization Dashboard</title>
+    <title>Data Visualization Dashboard with EPW Data</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
@@ -110,11 +110,22 @@
             border: 1px solid #ddd;
             outline: none;
         }
+
+        .file-input-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Data Visualization Dashboard</h2>
+        <h2>Data Visualization Dashboard with EPW Data</h2>
+
+        <!-- File Input for EPW file -->
+        <div class="file-input-container">
+            <label for="fileInput">Upload EPW file:</label>
+            <input type="file" id="fileInput" accept=".epw">
+        </div>
 
         <!-- Month Filter -->
         <div class="month-filter">
@@ -179,199 +190,154 @@
     </div>
 
     <script>
-        // Cloud Coverage Chart
-        const ctxCloudCoverage = document.getElementById('cloudCoverageChart').getContext('2d');
-        new Chart(ctxCloudCoverage, {
-            type: 'bar',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                datasets: [
-                    {
-                        label: 'ABOVE range',
-                        data: [20, 25, 15, 30, 20, 25, 20, 25, 30, 15, 20, 25],
-                        backgroundColor: 'lightblue',
-                        barThickness: 40
-                    },
-                    {
-                        label: 'IN range',
-                        data: [10, 15, 10, 15, 10, 15, 10, 15, 10, 15, 10, 15],
-                        backgroundColor: 'lightgray',
-                        barThickness: 40
-                    },
-                    {
-                        label: 'BELOW range',
-                        data: [70, 60, 75, 55, 70, 60, 70, 60, 60, 70, 70, 60],
-                        backgroundColor: 'gray',
-                        barThickness: 40
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    x: {
-                        stacked: true,
-                    },
-                    y: {
-                        stacked: true,
-                        beginAtZero: true,
-                        max: 100
-                    }
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                if (context.parsed.y !== null) {
-                                    label += context.parsed.y;
-                                }
-                                return label;
-                            }
-                        }
-                    }
-                }
+        document.getElementById("fileInput").addEventListener("change", function(event) {
+            const file = event.target.files[0]; 
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const epwData = e.target.result;
+                    processEPWData(epwData);
+                };
+                reader.readAsText(file);
             }
         });
 
-        // Heatmap
-        var hours = Array.from({ length: 24 }, (_, i) => `Hour ${i + 1}`);
-var days = [];
+        function processEPWData(data) {
+            const lines = data.split("\n");
+            const weatherData = [];
 
-for (let i = 0; i < 365; i++) {
-    let month, day;
-    if (i < 31) {
-        month = "Jan";
-        day = i + 1;
-    } else if (i < 59) {
-        month = "Feb";
-        day = i - 31 + 1;
-    } else if (i < 90) {
-        month = "Mar";
-        day = i - 59 + 1;
-    } else if (i < 120) {
-        month = "Apr";
-        day = i - 90 + 1;
-    } else if (i < 151) {
-        month = "May";
-        day = i - 120 + 1;
-    } else if (i < 181) {
-        month = "Jun";
-        day = i - 151 + 1;
-    } else if (i < 212) {
-        month = "Jul";
-        day = i - 181 + 1;
-    } else if (i < 243) {
-        month = "Aug";
-        day = i - 212 + 1;
-    } else if (i < 273) {
-        month = "Sep";
-        day = i - 243 + 1;
-    } else if (i < 304) {
-        month = "Oct";
-        day = i - 273 + 1;
-    } else if (i < 334) {
-        month = "Nov";
-        day = i - 304 + 1;
-    } else {
-        month = "Dec";
-        day = i - 334 + 1;
-    }
-    const x = 1;
-    days.push(`${month} ${day}`);
-}
-
-        var heatmapValues = Array.from({ length: 24 }, () => Array.from({ length: 365 }, () => Math.floor(Math.random() * 100)));
-
-        var heatmapData = [{
-            z: heatmapValues,
-            x: days,
-            y: hours,
-            colorscale: 'YlOrRd',
-            type: 'heatmap'
-        }];
-
-        var layoutHeatmap = {
-            title: 'Sample Heatmap',
-            xaxis: {
-                title: 'Days',
-                tickvals: days.filter((_, index) => index % 30 === 0),
-                ticktext: days.filter((_, index) => index % 30 === 0)
-            },
-            yaxis: { title: 'Hours' }
-        };
-
-        Plotly.newPlot('heatmap', heatmapData, layoutHeatmap);
-
-        // Polar Bar Chart
-        var dataPolarBarChart = [
-            {
-                type: 'barpolar',
-                r: [2, 1.5, 3, 3.5, 1, 2.5, 4.5, 5, 6.5, 7.5, 8, 5.5, 6, 7, 4],
-                theta: ['0°', '22.5°', '45°', '67.5°', '90°', '112.5°', '135°', '157.5°', '180°', '202.5°', '225°', '247.5°', '270°', '292.5°', '315°'],
-                marker: {
-                    color: ['#FFD700', '#FF8C00', '#FF6347', '#FF4500', '#FF1493', '#FF69B4', '#CD5C5C', '#FF7F50', '#FFA07A', '#00BFFF', '#1E90FF', '#87CEEB', '#4682B4', '#4169E1', '#6A5ACD']
+            for (let i = 8; i < lines.length; i++) {
+                const line = lines[i];
+                const columns = line.split(",");
+                if (columns.length > 6) {
+                    weatherData.push({
+                        Year: parseInt(columns[0]),
+                        Month: parseInt(columns[1]),
+                        Day: parseInt(columns[2]),
+                        Hour: parseInt(columns[3]),
+                        Minute: parseInt(columns[4]),
+                        DryBulbTemperature: parseFloat(columns[6]),
+                        CloudCover: parseFloat(columns[20])  // Example: cloud cover column from EPW file
+                    });
                 }
             }
-        ];
-        var layoutPolarBarChart = {
-            font: { size: 16 }
-        };
-        Plotly.newPlot('polar-bar-chart', dataPolarBarChart, layoutPolarBarChart);
 
-        // Heating and Cooling Degree Days Chart
-        const ctxHeatingCooling = document.getElementById('myChart').getContext('2d');
-        new Chart(ctxHeatingCooling, {
-            type: 'bar',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                datasets: [
-                    {
-                        label: 'Cooling Degree Days',
-                        data: [0, 0, 0, 0, 0, 200, 250, 250, 150, 50, 0, 0],
-                        backgroundColor: 'blue'
-                    },
-                    {
-                        label: 'Heating Degree Days',
-                        data: [-200, -150, -100, -50, -50, 0, 0, 0, 0, 0, -50, -200],
-                        backgroundColor: 'red'
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    x: {
-                        stacked: true,
-                    },
-                    y: {
-                        stacked: true,
-                        beginAtZero: true
-                    }
+            // Для heatmap
+            const heatmapValues = Array.from({ length: 24 }, () => Array(365).fill(null));
+            const cloudCoverageData = Array(12).fill(0).map(() => Array(3).fill(0)); // Cloud coverage data
+
+            weatherData.forEach(entry => {
+                const dayOfYear = getDayOfYear(entry.Month, entry.Day); 
+                heatmapValues[entry.Hour - 1][dayOfYear - 1] = entry.DryBulbTemperature;
+
+                // Cloud coverage data per month
+                if (entry.CloudCover !== null && entry.Month >= 1 && entry.Month <= 12) {
+                    cloudCoverageData[entry.Month - 1][0] += (entry.CloudCover > 7) ? 1 : 0;  // ABOVE range
+                    cloudCoverageData[entry.Month - 1][1] += (entry.CloudCover >= 4 && entry.CloudCover <= 7) ? 1 : 0;  // IN range
+                    cloudCoverageData[entry.Month - 1][2] += (entry.CloudCover < 4) ? 1 : 0;  // BELOW range
+                }
+            });
+
+            // Обновляем heatmap
+            updateHeatmap(heatmapValues);
+            // Обновляем Cloud Coverage Chart
+            updateCloudCoverageChart(cloudCoverageData);
+        }
+
+        // Получаем день года для конкретного месяца и дня
+        function getDayOfYear(month, day) {
+            const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+            return day + daysInMonth.slice(0, month - 1).reduce((sum, days) => sum + days, 0);
+        }
+
+        // Обновляем Heatmap
+        function updateHeatmap(heatmapValues) {
+            var hours = Array.from({ length: 24 }, (_, i) => `Hour ${i + 1}`);
+            var days = [];
+
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            let dayOfYear = 1;
+
+            months.forEach((month, monthIndex) => {
+                const daysInMonth = new Date(2020, monthIndex + 1, 0).getDate();
+                for (let day = 1; day <= daysInMonth; day++) {
+                    days.push(`${month} ${day}`);
+                    dayOfYear++;
+                }
+            });
+
+            var heatmapData = [{
+                z: heatmapValues,
+                x: days,
+                y: hours,
+                colorscale: 'YlOrRd',
+                type: 'heatmap'
+            }];
+
+            var layoutHeatmap = {
+                title: 'Heatmap of Temperatures',
+                xaxis: {
+                    title: 'Days',
+                    tickvals: days.filter((_, index) => index % 30 === 0),
+                    ticktext: days.filter((_, index) => index % 30 === 0)
                 },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                if (context.parsed.y !== null) {
-                                    label += context.parsed.y;
-                                }
-                                return label;
-                            }
+                yaxis: { title: 'Hours' }
+            };
+
+            Plotly.newPlot('heatmap', heatmapData, layoutHeatmap);
+        }
+        function updateCloudCoverageChart(cloudCoverageData) {
+            const ctxCloudCoverage = document.getElementById('cloudCoverageChart').getContext('2d');
+            new Chart(ctxCloudCoverage, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [
+                        {
+                            label: 'ABOVE range',
+                            data: cloudCoverageData.map(data => Math.floor(Math.random() * (1000 - (-1000)) + (-1000))),
+                            backgroundColor: 'darkgray',
+                            barThickness: 40
+                        },
+                        {
+                            label: 'IN range',
+                            data: cloudCoverageData.map(data => Math.floor(Math.random() * (1000 - (-1000)) + (-1000))),
+                            backgroundColor: 'lightgray',
+                            barThickness: 40
+                        },
+                        {
+                            label: 'BELOW range',
+                            data: cloudCoverageData.map(data => Math.floor(Math.random() * (1000 - (-1000)) + (-1000))),
+                            backgroundColor: 'lightblue',
+                            barThickness: 40
                         }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { stacked: true },
+                        y: { stacked: true, beginAtZero: true, min: -1000, max: 1000 }
                     }
                 }
-            }
+            });
+        }
+
+        function showChart(chartId) {
+            const chartContainers = ['cloudCoverageContainer', 'heatmapContainer', 'polarBarContainer', 'statistickContainer', 'heatingCoolingContainer'];
+            chartContainers.forEach(id => {
+                document.getElementById(id).style.display = 'none';
+            });
+            document.getElementById(chartId + 'Container').style.display = 'block';
+        }
+
+        document.getElementById('monthSelect').addEventListener('change', function() {
+            const selectedMonth = this.value;
+            // Here you can add code to filter chart data based on the selected month
+            console.log('Selected Month:', selectedMonth);
         });
 
-        // Statistick Chart
+        // Статистики
         const ctxBrowser = document.getElementById('browserChart').getContext('2d');
         new Chart(ctxBrowser, {
             type: 'pie',
@@ -407,23 +373,66 @@ for (let i = 0; i < 365; i++) {
             }
         });
 
-        // Function to show/hide charts
-        function showChart(chartId) {
-            const chartContainers = ['cloudCoverageContainer', 'heatmapContainer', 'polarBarContainer', 'statistickContainer', 'heatingCoolingContainer'];
-            chartContainers.forEach(id => {
-                document.getElementById(id).style.display = 'none';
-            });
-            document.getElementById(chartId + 'Container').style.display = 'block';
-        }
-
-        // Function to filter charts by month
-        document.getElementById('monthSelect').addEventListener('change', function() {
-            const selectedMonth = this.value;
-            // Here you can add code to filter chart data based on the selected month
-            console.log('Selected Month:', selectedMonth);
+        // Heating and Cooling Degree Days
+        const ctxHeatingCooling = document.getElementById('myChart').getContext('2d');
+        new Chart(ctxHeatingCooling, {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [
+                    {
+                        label: 'Cooling Degree Days',
+                        data: [0, 0, 0, 0, 0, 200, 250, 250, 150, 50, 0, 0],
+                        backgroundColor: 'blue'
+                    },
+                    {
+                        label: 'Heating Degree Days',
+                        data: [-200, -150, -100, -50, -50, 0, 0, 0, 0, 0, -50, -200],
+                        backgroundColor: 'red'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { stacked: true },
+                    y: { stacked: true, beginAtZero: true }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += context.parsed.y;
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
         });
 
-        // Initially show Cloud Coverage Chart
+        // Wind Rose
+        var dataPolarBarChart = [
+            {
+                type: 'barpolar',
+                r: [2, 1.5, 3, 3.5, 1, 2.5, 4.5, 5, 6.5, 7.5, 8, 5.5, 6, 7, 4],
+                theta: ['0°', '22.5°', '45°', '67.5°', '90°', '112.5°', '135°', '157.5°', '180°', '202.5°', '225°', '247.5°', '270°', '292.5°', '315°'],
+                marker: {
+                    color: ['#FFD700', '#FF8C00', '#FF6347', '#FF4500', '#FF1493', '#FF69B4', '#CD5C5C', '#FF7F50', '#FFA07A', '#00BFFF', '#1E90FF', '#87CEEB', '#4682B4', '#4169E1', '#6A5ACD']
+                }
+            }
+        ];
+        var layoutPolarBarChart = {
+            font: { size: 16 }
+        };
+        Plotly.newPlot('polar-bar-chart', dataPolarBarChart, layoutPolarBarChart);
+
         showChart('cloudCoverage');
     </script>
 </body>
